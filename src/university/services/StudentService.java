@@ -37,6 +37,104 @@ public class StudentService {
         return result;
     }
 
+    public Student[] searchStudents(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            throw new IllegalArgumentException("Пошуковий запит не може бути порожнім.");
+        }
+
+        String normalizedQuery = query.trim().toLowerCase();
+        int resultCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (matchesSearch(students[i], normalizedQuery)) {
+                resultCount++;
+            }
+        }
+
+        Student[] result = new Student[resultCount];
+        int resultIndex = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (matchesSearch(students[i], normalizedQuery)) {
+                result[resultIndex] = students[i];
+                resultIndex++;
+            }
+        }
+
+        return result;
+    }
+
+    public Student[] filterByStatus(StudentStatus status) {
+        if (status == null) {
+            throw new IllegalArgumentException("Статус студента не може бути порожнім.");
+        }
+
+        int resultCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (students[i].getStatus() == status) {
+                resultCount++;
+            }
+        }
+
+        Student[] result = new Student[resultCount];
+        int resultIndex = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (students[i].getStatus() == status) {
+                result[resultIndex] = students[i];
+                resultIndex++;
+            }
+        }
+
+        return result;
+    }
+
+    public Student[] filterByStudyYear(int studyYear) {
+        if (studyYear < 1 || studyYear > 6) {
+            throw new IllegalArgumentException("Рік навчання має бути від 1 до 6.");
+        }
+
+        int resultCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (students[i].getStudyYear() == studyYear) {
+                resultCount++;
+            }
+        }
+
+        Student[] result = new Student[resultCount];
+        int resultIndex = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (students[i].getStudyYear() == studyYear) {
+                result[resultIndex] = students[i];
+                resultIndex++;
+            }
+        }
+
+        return result;
+    }
+
+    public Student[] getStudentsSortedByFullName() {
+        Student[] result = getAllStudents();
+
+        for (int i = 0; i < result.length - 1; i++) {
+            for (int j = 0; j < result.length - i - 1; j++) {
+                String currentName = result[j].getFullName();
+                String nextName = result[j + 1].getFullName();
+
+                if (currentName.compareToIgnoreCase(nextName) > 0) {
+                    Student temp = result[j];
+                    result[j] = result[j + 1];
+                    result[j + 1] = temp;
+                }
+            }
+        }
+
+        return result;
+    }
+
     public Student findStudentById(int id) {
         int index = findStudentIndexById(id);
 
@@ -86,6 +184,13 @@ public class StudentService {
 
     public int getCount() {
         return count;
+    }
+
+    private boolean matchesSearch(Student student, String normalizedQuery) {
+        String fullName = student.getFullName().toLowerCase();
+        String email = student.getEmail().toLowerCase();
+
+        return fullName.contains(normalizedQuery) || email.contains(normalizedQuery);
     }
 
     private int findStudentIndexById(int id) {

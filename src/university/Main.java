@@ -43,7 +43,7 @@ public class Main {
                         showEnrollmentMenu();
                         break;
                     case "5":
-                        showSectionMessage("Звіти / Пошук");
+                        showReportsMenu();
                         break;
                     case "0":
                         running = false;
@@ -70,10 +70,6 @@ public class Main {
         System.out.println("4. Зарахування");
         System.out.println("5. Звіти / Пошук");
         System.out.println("0. Вихід");
-    }
-
-    private static void showSectionMessage(String sectionName) {
-        System.out.println("Розділ \"" + sectionName + "\" буде реалізовано у наступних задачах.");
     }
 
     private static void showStudentMenu() {
@@ -603,6 +599,168 @@ public class Main {
                 return Grade.NA;
             default:
                 throw new IllegalArgumentException("Невірна оцінка.");
+        }
+    }
+
+    private static void showReportsMenu() {
+        boolean back = false;
+
+        while (!back) {
+            printReportsMenu();
+            String choice = readLine("Ваш вибір: ");
+
+            try {
+                switch (choice) {
+                    case "1":
+                        searchStudents();
+                        break;
+                    case "2":
+                        showStudentsByStatus();
+                        break;
+                    case "3":
+                        showStudentsByStudyYear();
+                        break;
+                    case "4":
+                        showStudentsSortedByFullName();
+                        break;
+                    case "5":
+                        showCoursesByTeacher();
+                        break;
+                    case "6":
+                        showCoursesByCredits();
+                        break;
+                    case "7":
+                        showUnpaidEnrollments();
+                        break;
+                    case "8":
+                        showAverageGPAByCourseAndSemester();
+                        break;
+                    case "9":
+                        showTopStudentsByGPA();
+                        break;
+                    case "0":
+                        back = true;
+                        break;
+                    default:
+                        System.out.println("Помилка: оберіть пункт меню від 0 до 9.");
+                        break;
+                }
+            } catch (IllegalArgumentException exception) {
+                System.out.println("Помилка: " + exception.getMessage());
+            }
+        }
+    }
+
+    private static void printReportsMenu() {
+        System.out.println();
+        System.out.println("=== Звіти / Пошук ===");
+        System.out.println("1. Пошук студента за ПІБ або email");
+        System.out.println("2. Студенти за статусом");
+        System.out.println("3. Студенти за роком навчання");
+        System.out.println("4. Студенти за ПІБ (bubble sort)");
+        System.out.println("5. Курси за викладачем");
+        System.out.println("6. Курси за кількістю кредитів");
+        System.out.println("7. Студенти з неоплаченими курсами");
+        System.out.println("8. Середній GPA по курсу/семестру");
+        System.out.println("9. Топ-N студентів за GPA");
+        System.out.println("0. Назад");
+    }
+
+    private static void searchStudents() {
+        String query = readLine("Введіть частину ПІБ або email: ");
+        Student[] students = studentService.searchStudents(query);
+        printStudents(students, "Студентів не знайдено.");
+    }
+
+    private static void showStudentsByStatus() {
+        StudentStatus status = readStudentStatus();
+        Student[] students = studentService.filterByStatus(status);
+        printStudents(students, "Студентів з таким статусом не знайдено.");
+    }
+
+    private static void showStudentsByStudyYear() {
+        int studyYear = readInt("Рік навчання: ");
+        Student[] students = studentService.filterByStudyYear(studyYear);
+        printStudents(students, "Студентів такого року навчання не знайдено.");
+    }
+
+    private static void showStudentsSortedByFullName() {
+        Student[] students = studentService.getStudentsSortedByFullName();
+        printStudents(students, "Студентів немає.");
+    }
+
+    private static void showCoursesByTeacher() {
+        Teacher teacher = readTeacherById();
+        Course[] courses = courseService.filterByTeacher(teacher);
+        printCourses(courses, "Курсів цього викладача не знайдено.");
+    }
+
+    private static void showCoursesByCredits() {
+        int credits = readInt("Кількість кредитів: ");
+        Course[] courses = courseService.filterByCredits(credits);
+        printCourses(courses, "Курсів з такою кількістю кредитів не знайдено.");
+    }
+
+    private static void showUnpaidEnrollments() {
+        Enrollment[] enrollments = enrollmentService.getUnpaidEnrollments();
+
+        if (enrollments.length == 0) {
+            System.out.println("Неоплачених курсів немає.");
+            return;
+        }
+
+        for (int i = 0; i < enrollments.length; i++) {
+            System.out.println(enrollments[i]);
+        }
+    }
+
+    private static void showAverageGPAByCourseAndSemester() {
+        Course course = readCourseById();
+        String semester = readLine("Семестр: ");
+        int gradeCount = enrollmentService.countFinalGradesForCourseAndSemester(course, semester);
+
+        if (gradeCount == 0) {
+            System.out.println("Немає виставлених оцінок для цього курсу і семестру.");
+            return;
+        }
+
+        double averageGPA = enrollmentService.calculateAverageGPAForCourseAndSemester(course, semester);
+        System.out.println("Середній GPA: " + formatDouble(averageGPA));
+    }
+
+    private static void showTopStudentsByGPA() {
+        if (studentService.getCount() == 0) {
+            throw new IllegalArgumentException("Студентів немає.");
+        }
+
+        int topN = readInt("Скільки студентів показати: ");
+        Student[] students = enrollmentService.getTopStudentsByGPA(studentService.getAllStudents(), topN);
+
+        for (int i = 0; i < students.length; i++) {
+            double gpa = enrollmentService.calculateGPAForStudent(students[i]);
+            System.out.println((i + 1) + ". " + students[i] + ", GPA: " + formatDouble(gpa));
+        }
+    }
+
+    private static void printStudents(Student[] students, String emptyMessage) {
+        if (students.length == 0) {
+            System.out.println(emptyMessage);
+            return;
+        }
+
+        for (int i = 0; i < students.length; i++) {
+            System.out.println(students[i]);
+        }
+    }
+
+    private static void printCourses(Course[] courses, String emptyMessage) {
+        if (courses.length == 0) {
+            System.out.println(emptyMessage);
+            return;
+        }
+
+        for (int i = 0; i < courses.length; i++) {
+            System.out.println(courses[i]);
         }
     }
 

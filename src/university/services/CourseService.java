@@ -37,6 +37,58 @@ public class CourseService {
         return result;
     }
 
+    public Course[] filterByTeacher(Teacher teacher) {
+        if (teacher == null) {
+            throw new IllegalArgumentException("Викладач не може бути порожнім.");
+        }
+
+        int resultCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (courses[i].getTeacher().getId() == teacher.getId()) {
+                resultCount++;
+            }
+        }
+
+        Course[] result = new Course[resultCount];
+        int resultIndex = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (courses[i].getTeacher().getId() == teacher.getId()) {
+                result[resultIndex] = courses[i];
+                resultIndex++;
+            }
+        }
+
+        return result;
+    }
+
+    public Course[] filterByCredits(int credits) {
+        if (credits <= 0) {
+            throw new IllegalArgumentException("Кількість кредитів має бути більше 0.");
+        }
+
+        int resultCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (courses[i].getCredits() == credits) {
+                resultCount++;
+            }
+        }
+
+        Course[] result = new Course[resultCount];
+        int resultIndex = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (courses[i].getCredits() == credits) {
+                result[resultIndex] = courses[i];
+                resultIndex++;
+            }
+        }
+
+        return result;
+    }
+
     public Course findCourseById(int id) {
         int index = findCourseIndexById(id);
 

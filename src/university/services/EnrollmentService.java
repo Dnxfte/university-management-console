@@ -96,12 +96,131 @@ public class EnrollmentService {
         return result;
     }
 
+    public Enrollment[] getUnpaidEnrollments() {
+        int resultCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (!enrollments[i].isPaid()) {
+                resultCount++;
+            }
+        }
+
+        Enrollment[] result = new Enrollment[resultCount];
+        int resultIndex = 0;
+
+        for (int i = 0; i < count; i++) {
+            if (!enrollments[i].isPaid()) {
+                result[resultIndex] = enrollments[i];
+                resultIndex++;
+            }
+        }
+
+        return result;
+    }
+
     public double calculateGPAForStudent(Student student) {
         return GPAUtils.calculateGPA(getEnrollmentsByStudent(student));
     }
 
+    public double calculateAverageGPAForCourseAndSemester(Course course, String semester) {
+        if (course == null) {
+            throw new IllegalArgumentException("Курс не може бути порожнім.");
+        }
+
+        if (semester == null || semester.trim().isEmpty()) {
+            throw new IllegalArgumentException("Семестр не може бути порожнім.");
+        }
+
+        double totalPoints = 0.0;
+        int gradeCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            boolean sameCourse = enrollments[i].getCourse().getId() == course.getId();
+            boolean sameSemester = enrollments[i].getSemester().equalsIgnoreCase(semester.trim());
+            boolean hasGrade = enrollments[i].getGrade().isFinalGrade();
+
+            if (sameCourse && sameSemester && hasGrade) {
+                totalPoints += enrollments[i].getGrade().getPoints();
+                gradeCount++;
+            }
+        }
+
+        if (gradeCount == 0) {
+            return 0.0;
+        }
+
+        return totalPoints / gradeCount;
+    }
+
+    public int countFinalGradesForCourseAndSemester(Course course, String semester) {
+        if (course == null) {
+            throw new IllegalArgumentException("Курс не може бути порожнім.");
+        }
+
+        if (semester == null || semester.trim().isEmpty()) {
+            throw new IllegalArgumentException("Семестр не може бути порожнім.");
+        }
+
+        int gradeCount = 0;
+
+        for (int i = 0; i < count; i++) {
+            boolean sameCourse = enrollments[i].getCourse().getId() == course.getId();
+            boolean sameSemester = enrollments[i].getSemester().equalsIgnoreCase(semester.trim());
+            boolean hasGrade = enrollments[i].getGrade().isFinalGrade();
+
+            if (sameCourse && sameSemester && hasGrade) {
+                gradeCount++;
+            }
+        }
+
+        return gradeCount;
+    }
+
+    public Student[] getTopStudentsByGPA(Student[] students, int topN) {
+        if (topN <= 0) {
+            throw new IllegalArgumentException("Кількість студентів має бути більше 0.");
+        }
+
+        Student[] sortedStudents = new Student[students.length];
+
+        for (int i = 0; i < students.length; i++) {
+            sortedStudents[i] = students[i];
+        }
+
+        sortStudentsByGPADescending(sortedStudents);
+
+        int resultSize = topN;
+
+        if (resultSize > sortedStudents.length) {
+            resultSize = sortedStudents.length;
+        }
+
+        Student[] result = new Student[resultSize];
+
+        for (int i = 0; i < resultSize; i++) {
+            result[i] = sortedStudents[i];
+        }
+
+        return result;
+    }
+
     public int getCount() {
         return count;
+    }
+
+    private void sortStudentsByGPADescending(Student[] students) {
+        for (int i = 0; i < students.length - 1; i++) {
+            for (int j = 0; j < students.length - i - 1; j++) {
+                double currentGPA = calculateGPAForStudent(students[j]);
+                double nextGPA = calculateGPAForStudent(students[j + 1]);
+
+                if (currentGPA < nextGPA) {
+                    Student temp = students[j];
+                    students[j] = students[j + 1];
+                    students[j + 1] = temp;
+                }
+            }
+        }
     }
 
     private boolean hasEnrollment(Student student, Course course, String semester) {
