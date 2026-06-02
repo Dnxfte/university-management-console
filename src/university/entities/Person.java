@@ -71,4 +71,23 @@ public class Person {
     public String toString() {
         return getPersonInfo();
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        Person person = (Person) object;
+        return id == person.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
 }

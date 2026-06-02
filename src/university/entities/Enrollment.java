@@ -103,4 +103,23 @@ public class Enrollment implements Payable {
                 + ", оцінка: " + grade
                 + ", оплачено: " + (paid ? "так" : "ні");
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        Enrollment enrollment = (Enrollment) object;
+        return id == enrollment.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
 }

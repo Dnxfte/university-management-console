@@ -68,4 +68,23 @@ public class Course {
                 + ", кредити: " + credits
                 + ", викладач: " + teacher.getFullName();
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        Course course = (Course) object;
+        return id == course.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
 }
